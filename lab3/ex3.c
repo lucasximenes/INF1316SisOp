@@ -4,18 +4,14 @@
 #include <sys/wait.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-typedef struct pair
-{
-    int val;
-    int index;
-} pair;
-
+#include <time.h>
+// Alunos: Lucas Ximenes Guilhon e Miguel Fagundes Vuori
 
 int main()
 {
     int cont, d, i, *V, *greatest, aux, status,valor_comp = -1;
     int segmento, segmento2;
+    clock_t begin = clock();
     segmento = shmget(7005, sizeof(int) * 4000, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR | S_IROTH);
     segmento2 = shmget(7006, sizeof(int), IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR | S_IROTH);
     
@@ -61,5 +57,8 @@ int main()
     shmdt(greatest);
     shmctl(segmento,IPC_RMID,0);
     shmctl(segmento2,IPC_RMID,0);
+    clock_t end = clock();
+    double total_t = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("Total time taken by CPU: %f\n", total_t );
     return 0;
 }
