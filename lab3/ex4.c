@@ -56,14 +56,14 @@ int main()
     clock_t begin = clock();
     for (t = 0; t < NUM_THREADS; t++)
         pthread_join(threads[t], NULL);
-
+    clock_t end = clock();
+    
     for (t = 0; t < NUM_THREADS; t++){
         if (res[t].greatest > greatest_comp)
             greatest_comp = res[t].greatest;
     }
     printf("\nMaior valor achado no vetor foi %d\n", greatest_comp);
     free(V);
-    clock_t end = clock();
     double total_t = (double)(end - begin) / CLOCKS_PER_SEC;
     printf("Total time taken by CPU: %f\n", total_t );
     return 0;

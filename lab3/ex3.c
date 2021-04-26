@@ -11,7 +11,6 @@ int main()
 {
     int cont, d, i, *V, *greatest, aux, status,valor_comp = -1;
     int segmento, segmento2;
-    clock_t begin = clock();
     segmento = shmget(7005, sizeof(int) * 4000, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR | S_IROTH);
     segmento2 = shmget(7006, sizeof(int), IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR | S_IROTH);
     
@@ -49,15 +48,16 @@ int main()
         }
     }
 
+    clock_t begin = clock();
     for (d = 0; d < 4; d++)
         waitpid(-1, &status, 0);
+    clock_t end = clock();
 
     printf("Ao final do programa encontramos %d para o maior valor do vetor\n",*greatest);
     shmdt(V);
     shmdt(greatest);
     shmctl(segmento,IPC_RMID,0);
     shmctl(segmento2,IPC_RMID,0);
-    clock_t end = clock();
     double total_t = (double)(end - begin) / CLOCKS_PER_SEC;
     printf("Total time taken by CPU: %f\n", total_t );
     return 0;
