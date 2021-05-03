@@ -27,46 +27,7 @@ int main()
         {
             kill(getpid(),SIGSTOP);
             for(EVER);
-            
-            //exit(0);
         }
-        //else{
-        //    for(i = 0; i < 20; i++)
-            
-            // {
-            //     sleep(1);
-            //     if (inRange(getpid(),pid_filho_atual,4)) 
-            //         pid_filho_atual += 1;
-            //     else
-            //     {
-            //         pid_filho_atual = getpid() + 1;
-            //         cont += 1;
-            //     }
-            //     pid_filho_anterior = pid_filho_atual - 1;
-
-            //     if (!(inRange(getpid(),pid_filho_anterior,4))) 
-            //         pid_filho_anterior = getpid() + 4;
-
-            //     printf("Contador: %d\n",cont);
-            //     if(cont < 21)
-            //     {
-            //         printf("O pai eh %d\n",getpid());
-            //         printf("Vo continuar o filho %d\n",pid_filho_atual);
-            //         kill(pid_filho_atual,SIGCONT);
-            //         printf("Vo parar o filho %d\n",pid_filho_anterior);
-            //         kill(pid_filho_anterior,SIGSTOP);
-                    
-            //     }
-            //     else
-            //     {
-            //         printf("Vo matar o filho %d\n",pid_filho_atual);
-            //         kill(pid_filho_atual,SIGKILL);
-            //     }
-            //     exit(0);
-            // }
-            
-                
-        //}
     }
     if(pid != 0)
         for(i = 0; i < 80; i++)
@@ -102,11 +63,5 @@ int main()
                 }
             }
         }
-
-    // for (d = 0; d < 4; d++)
-    //     waitpid(-1, &status, 0);
-
-    //shmdt(pid_filho_atual);
-    //shmctl(segmento,IPC_RMID,0);
     return 0;
 }
