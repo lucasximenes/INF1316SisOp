@@ -9,6 +9,9 @@
 #include <sys/ipc.h>
 #include <sys/wait.h>
 
+
+// Alunos: Lucas Ximenes Guilhon e Miguel Fagundes Vuori
+
 union semun
 {
     int val;
@@ -44,11 +47,11 @@ int main (int argc, char * argv[])
 		{
             for(i = 0; i < 500; i++)
             {   
-                //semaforoP(semId);
+                semaforoP(semId);
                 (*varComp) = (*varComp) + d + 1;
-                //semaforoV(semId);
+                semaforoV(semId);
                 printf("pid: %d - %d\n",getpid(),(*varComp));
-                usleep(100);
+                usleep(300);
             }         
             exit(0);
 		}
