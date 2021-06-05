@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
         printf("\nnumquadros = %d\n", numQuadros);
 
         file = fopen(argv[2], "r");
-        // if (file == NULL)
-        //     exit(EXIT_FAILURE);
+        if (file == NULL)
+            exit(EXIT_FAILURE);
 
         printf("Executando o simulador...\n");
         printf("Arquivo de entrada: %s\n", argv[2]);
@@ -125,11 +125,20 @@ int main(int argc, char *argv[])
                     }
                 }
 
+                // chama o algoritmo de substituicao de pagina correspondente
                 if (achou == 0)
                 {
-                    // chama o algoritmo de substituicao de pagina correspondente
                     if (!strcmp(algoritmo, "LRU"))
                     {
+                        int lastAccessed = tempo;
+                        for (int i = 0; i < numQuadros; i++)
+                        {
+                            if (tabela[memoria[i]]->ultimoAcesso < lastAccessed)
+                            {
+                                lastAccessed = tabela[memoria[i]]->ultimoAcesso;
+                                novoEndereco = i;
+                            }
+                        }
                     }
                     else if (!strcmp(algoritmo, "NRU"))
                     {
@@ -168,9 +177,8 @@ int main(int argc, char *argv[])
                     {
                     }
                 }
-
             }
-            tabela[page]->emMemoria = 1; 
+            tabela[page]->emMemoria = 1;
             tabela[page]->endereco = novoEndereco;
 
             memoria[novoEndereco] = page;
@@ -190,6 +198,8 @@ int main(int argc, char *argv[])
         }
         free(tabela);
         free(memoria);
+        // printf("Número de Faltas de Páginas: %d", );
+        // printf("Número de Páginas Escritas: %d", );
     }
     else
     {
