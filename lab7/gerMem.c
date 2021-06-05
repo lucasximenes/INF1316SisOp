@@ -6,8 +6,8 @@
 
 struct pagina
 {
-    int R;
-    int M;
+    short R;
+    short M;
     short emMemoria;
     unsigned int endereco;
     time_t ultimoAcesso;
@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
         // leitura do log de entrada
         while ((res = fscanf(log, "%x %c ", &addr, &rw)) != EOF)
         {
+            int novoEndereco = 0;
             page = addr >> bits; // indice da pagina
 
             // caso o algoritmo seja NRU reseta as flags a cada 1000 iteracoes
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
             if (!tabela[page]->emMemoria)
             {
                 //testa para ver se tem espaço na memória para a pagina
-                int novoEndereco = 0; // novo endereço da página na memória
+                novoEndereco = 0; // novo endereço da página na memória
                 short achou = 0;
                 for (int i = 0; i < numQuadros && achou == 0; i++)
                 {
@@ -132,17 +133,52 @@ int main(int argc, char *argv[])
                     }
                     else if (!strcmp(algoritmo, "NRU"))
                     {
+
+                        short substituiu = 0;
+
+                        for (int i = 0; i < numQuadros && substituiu == 0; i++)
+                        {
+                            if (tabela[memoria[i]]->R == 0 && tabela[memoria[i]]->M == 0)
+                            {
+                                novoEndereco = i;
+                                substituiu = 1;
+                            }
+                        }
+
+                        for (int i = 0; i < numQuadros && substituiu == 0; i++)
+                        {
+                            if (tabela[memoria[i]]->M == 1)
+                            {
+                                novoEndereco = i;
+                                substituiu = 1;
+                            }
+                        }
+
+                        for (int i = 0; i < numQuadros && substituiu == 0; i++)
+                        {
+                            if (tabela[memoria[i]]->R == 1)
+                            {
+
+                                novoEndereco = i;
+                                substituiu = 1;
+                            }
+                        }
                     }
                     else if (!strcmp(algoritmo, "2Chance"))
                     {
                     }
-
-                    tabela[page]->R = 1;
-                    if (rw == "W")
-                    {
-                        tabela[page]->M = 1;
-                    }
                 }
+
+            }
+            tabela[page]->emMemoria = 1; 
+            tabela[page]->endereco = novoEndereco;
+
+            memoria[novoEndereco] = page;
+
+            tabela[page]->R = 1;
+            if (rw == "W")
+            {
+                tabela[page]->M = 1;
             }
             tempo++;
         }
