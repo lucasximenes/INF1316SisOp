@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include "fila.h"
 
 struct pagina
 {
@@ -19,10 +20,11 @@ int main(int argc, char *argv[])
 {
     int tamPag, tamMem, tempo = 0, res = 0;
     FILE *file;
-    char *rw, *algoritmo;
+    char rw, *algoritmo;
     unsigned int addr, page, bits, mAddr;
     int numPags, numQuadros, *memoria;
     int n_pageFaults = 0;
+    Fila *memFila;
 
     if (argc == 5)
     {
@@ -44,11 +46,14 @@ int main(int argc, char *argv[])
         }
         numQuadros = (tamMem / tamPag) * 1024;
         memoria = (int *)malloc(numQuadros * sizeof(int)); // vetor que representa a memoria
+        memFila = criaFila();
+        
 
         // inicializacao da memoria, -1 representa a ausencia de pagina
         for (int i = 0; i < numQuadros; i++)
         {
             memoria[i] = -1;
+            insereFila(memFila, -1);
         }
         printf("\nnumquadros = %d\n", numQuadros);
 
@@ -92,7 +97,7 @@ int main(int argc, char *argv[])
         }
 
         // leitura do log de entrada
-        while ((res = fscanf(log, "%x %c ", &addr, &rw)) != EOF)
+        while ((res = fscanf(file, "%x %c ", &addr, &rw)) != EOF)
         {
             int novoEndereco = 0;
             page = addr >> bits; // indice da pagina
@@ -112,22 +117,46 @@ int main(int argc, char *argv[])
             // a pagina nao esta na memoria
             if (!tabela[page]->emMemoria)
             {
+                n_pageFaults++;
+
                 //testa para ver se tem espaço na memória para a pagina
                 novoEndereco = 0; // novo endereço da página na memória
                 short achou = 0;
-                for (int i = 0; i < numQuadros && achou == 0; i++)
+
+                
+                if(!strcmp(algoritmo, "2Chance"))
                 {
-                    // achou lugar vazio pra nova página na memória
-                    if (memoria[i] == -1)
+                    memFila->corrente = memFila->cabeca;
+
+                    for (int i = 0; i < numQuadros && achou == 0; i++)
                     {
-                        novoEndereco = i;
-                        achou = 1;
+                        // achou lugar vazio pra nova página na memória
+                        if (memoria[memFila->corrente->val] == -1)
+                        {
+                            novoEndereco = i;
+                            achou = 1;
+                        }
+                        memFila->corrente = memFila->corrente->proximo;
                     }
                 }
+                else
+                {
+                    for (int i = 0; i < numQuadros && achou == 0; i++)
+                    {
+                        // achou lugar vazio pra nova página na memória
+                        if (memoria[i] == -1)
+                        {
+                            novoEndereco = i;
+                            achou = 1;
+                        }
+                    }
+                }
+                
 
                 // chama o algoritmo de substituicao de pagina correspondente
                 if (achou == 0)
                 {
+
                     if (!strcmp(algoritmo, "LRU"))
                     {
                         int lastAccessed = tempo;
@@ -175,6 +204,39 @@ int main(int argc, char *argv[])
                     }
                     else if (!strcmp(algoritmo, "2Chance"))
                     {
+                        short substituiu = 0;
+                        int shift = 0, bShift = 0, valorInicial;
+                        novoEndereco = 0;
+                        memFila->corrente = memFila->cabeca;
+
+                        for (int i = 0; i < numQuadros && substituiu; i++)
+                        {
+                            if (tabela[memFila->corrente->val]->R == 0)
+                            {
+                                substituiu = 1;
+                                novoEndereco = i;
+                            }
+                            else
+                            {
+                                tabela[memFila->corrente->val]->R = 0;
+                                memFila->corrente = memFila->corrente->proximo;
+                                shift++;
+                                bShift = 1;
+
+                            }
+                        }
+
+                        // shifta a fila de memoria
+                        if(bShift)
+                        {
+                            for(int i = 0; i < shift; i++)
+                            {
+                                int val = filaRetira();
+                                insereFila(memFila, val);
+                            }
+                            
+                        }
+                        
                     }
                 }
             }
@@ -184,7 +246,7 @@ int main(int argc, char *argv[])
             memoria[novoEndereco] = page;
 
             tabela[page]->R = 1;
-            if (rw == "W")
+            if (rw == 'W')
             {
                 tabela[page]->M = 1;
             }
