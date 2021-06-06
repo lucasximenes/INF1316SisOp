@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
     unsigned int addr, page, bits, mAddr;
     int numPags, numQuadros, *memoria;
     time_t tinicial = time(NULL);
+    int n_pageFaults = 0;
 
     if (argc == 5)
     {
@@ -97,12 +98,12 @@ int main(int argc, char *argv[])
             int novoEndereco = 0;
             page = addr >> bits; // indice da pagina
 
-            // caso o algoritmo seja NRU reseta as flags a cada 1000 iteracoes
-            if (!strcmp(algoritmo, "LRU") && tempo % 1000)
+            // caso o algoritmo seja LRU reseta as flags a cada 1000 iteracoes
+            if (strcmp(algoritmo, "LRU") && tempo % 1000)
             {
                 for (int i = 0; i < numQuadros; i++)
                 {
-                    if (memoria[i] != -1 && (tabela[memoria[i]]->R))
+                    if (memoria[i] != -1 && tabela[memoria[i]]->R == 1)
                     {
                         tabela[memoria[i]]->R = 0;
                     }
@@ -128,6 +129,9 @@ int main(int argc, char *argv[])
                 // chama o algoritmo de substituicao de pagina correspondente
                 if (achou == 0)
                 {
+                    /* acho que essa implementação do nicho tá errada, eu nem entendi o que ele ta fazendo
+                        pra mim tem que procurar o cara com o menor tempo e trocar ele
+                    */
                     if (!strcmp(algoritmo, "LRU"))
                     {
                         int lastAccessed = tempo;
@@ -198,7 +202,7 @@ int main(int argc, char *argv[])
         }
         free(tabela);
         free(memoria);
-        // printf("Número de Faltas de Páginas: %d", );
+        printf("Número de Faltas de Páginas: %d", n_pageFaults);
         // printf("Número de Páginas Escritas: %d", );
     }
     else
