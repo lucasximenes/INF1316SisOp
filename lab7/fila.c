@@ -65,7 +65,6 @@ int filaRetira(Fila* fila)
 }
 
 void liberaFila(Fila* fila){
-    No* aux;
     if(fila == NULL)
         return;
     else if(fila->cabeca == NULL) {

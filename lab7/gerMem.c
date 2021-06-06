@@ -35,6 +35,12 @@ int main(int argc, char *argv[])
         tamPag = atoi(argv[3]);
         tamMem = atoi(argv[4]);
 
+        if (strcmp(algoritmo, "NRU") != 0 && strcmp(algoritmo, "LFU") != 0 && strcmp(algoritmo, "2Chance") != 0)
+        {
+            printf("\nAlgoritmo escolhido não existe, escolha entre: NRU, LFU, 2Chance.\n");
+            exit(1);
+        }
+
         if (tamPag < 8 || tamPag > 32)
         {
             printf("Tamanho da pagina deve ter o valor entre 8 e 32");
@@ -49,7 +55,6 @@ int main(int argc, char *argv[])
         numQuadros = (tamMem / tamPag) * 1024;
         memoria = (int *)malloc(numQuadros * sizeof(int)); // vetor que representa a memoria
         memFila = criaFila();
-        
 
         // inicializacao da memoria, -1 representa a ausencia de pagina
         for (int i = 0; i < numQuadros; i++)
@@ -117,6 +122,17 @@ int main(int argc, char *argv[])
                 }
             }
 
+            // if (strcmp(algoritmo, "LFU") == 0)
+            // {
+            //     for (int i = 0; i < numQuadros; i++)
+            //     {
+            //         if (memoria[i] != -1 && tabela[memoria[i]]->R == 1)
+            //         {
+            //             tabela[memoria[i]]->numeroAcessos += 1;
+            //         }
+            //     }
+            // }
+
             // a pagina nao esta na memoria
             if (!tabela[page]->emMemoria)
             {
@@ -126,8 +142,7 @@ int main(int argc, char *argv[])
                 novoEndereco = 0; // novo endereço da página na memória
                 short achou = 0;
 
-                
-                if(!strcmp(algoritmo, "2Chance"))
+                if (!strcmp(algoritmo, "2Chance"))
                 {
                     memFila->corrente = memFila->cabeca;
 
@@ -154,7 +169,6 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                
 
                 // chama o algoritmo de substituicao de pagina correspondente
                 if (achou == 0)
@@ -207,7 +221,7 @@ int main(int argc, char *argv[])
                     else if (!strcmp(algoritmo, "2Chance"))
                     {
                         short substituiu = 0;
-                        int shift = 0, bShift = 0, valorInicial;
+                        int shift = 0, bShift = 0;
                         novoEndereco = 0;
                         memFila->corrente = memFila->cabeca;
 
@@ -224,40 +238,53 @@ int main(int argc, char *argv[])
                                 memFila->corrente = memFila->corrente->proximo;
                                 shift++;
                                 bShift = 1;
-
                             }
                         }
 
                         // shifta a fila de memoria
-                        if(bShift)
+                        if (bShift)
                         {
-                            for(int i = 0; i < shift; i++)
+                            for (int i = 0; i < shift; i++)
                             {
                                 int val = filaRetira();
                                 insereFila(memFila, val);
                             }
-                            
                         }
-                        
                     }
                 }
-            }
 
-            if (memoria[novoEndereco] != -1)
-            { 
-                tabela[memoria[novoEndereco]]->emMemoria = 0;
-                if (tabela[memoria[novoEndereco]]->M == 1)
+                if (!strcmp(algoritmo, "2Chance"))
                 {
-                    tabela[memoria[novoEndereco]]->R = 0;
-                    tabela[memoria[novoEndereco]]->M = 0;
-                    paginasEscritas++;
+                    if (memFila->cabeca->val != -1)
+                    {
+                        tabela[memFila->cabeca->val]->emMemoria = 0;
+                        if (tabela[memFila->cabeca->val]->M == 1)
+                        {
+                            tabela[memFila->cabeca->val]->R = 0;
+                            tabela[memFila->cabeca->val]->M = 0;
+                            paginasEscritas++;
+                        }
+                    }
                 }
+                else
+                {
+                    if (memoria[novoEndereco] != -1)
+                    {
+                        tabela[memoria[novoEndereco]]->emMemoria = 0;
+                        if (tabela[memoria[novoEndereco]]->M == 1)
+                        {
+                            tabela[memoria[novoEndereco]]->R = 0;
+                            tabela[memoria[novoEndereco]]->M = 0;
+                            paginasEscritas++;
+                        }
+                    }
+                }
+
+                tabela[page]->emMemoria = 1;
+                tabela[page]->endereco = novoEndereco;
+
+                memoria[novoEndereco] = page;
             }
-
-            tabela[page]->emMemoria = 1;
-            tabela[page]->endereco = novoEndereco;
-
-            memoria[novoEndereco] = page;
 
             tabela[page]->R = 1;
             if (rw == 'W')
