@@ -10,7 +10,7 @@ struct pagina
     short M;
     short emMemoria;
     unsigned int endereco;
-    time_t ultimoAcesso;
+    unsigned int ultimoAcesso;
 };
 
 typedef struct pagina Pagina;
@@ -22,7 +22,6 @@ int main(int argc, char *argv[])
     char *rw, *algoritmo;
     unsigned int addr, page, bits, mAddr;
     int numPags, numQuadros, *memoria;
-    time_t tinicial = time(NULL);
     int n_pageFaults = 0;
 
     if (argc == 5)
@@ -98,8 +97,8 @@ int main(int argc, char *argv[])
             int novoEndereco = 0;
             page = addr >> bits; // indice da pagina
 
-            // caso o algoritmo seja LRU reseta as flags a cada 1000 iteracoes
-            if (strcmp(algoritmo, "LRU") && tempo % 1000)
+            // caso o algoritmo seja NRU reseta as flags a cada 1000 iteracoes
+            if (!strcmp(algoritmo, "NRU") && tempo % 1000)
             {
                 for (int i = 0; i < numQuadros; i++)
                 {
@@ -129,9 +128,6 @@ int main(int argc, char *argv[])
                 // chama o algoritmo de substituicao de pagina correspondente
                 if (achou == 0)
                 {
-                    /* acho que essa implementação do nicho tá errada, eu nem entendi o que ele ta fazendo
-                        pra mim tem que procurar o cara com o menor tempo e trocar ele
-                    */
                     if (!strcmp(algoritmo, "LRU"))
                     {
                         int lastAccessed = tempo;
