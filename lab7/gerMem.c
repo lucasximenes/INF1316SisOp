@@ -10,7 +10,7 @@ struct pagina
     short M;
     short emMemoria;
     unsigned int endereco;
-    unsigned int ultimoAcesso;
+    unsigned int numeroAcessos;
 };
 
 typedef struct pagina Pagina;
@@ -19,10 +19,12 @@ int main(int argc, char *argv[])
 {
     int tamPag, tamMem, tempo = 0, res = 0;
     FILE *file;
-    char *rw, *algoritmo;
+    char rw, *algoritmo;
     unsigned int addr, page, bits, mAddr;
     int numPags, numQuadros, *memoria;
     int n_pageFaults = 0;
+    unsigned int paginasEscritas = 0;
+    clock_t start, stop;
 
     if (argc == 5)
     {
@@ -50,7 +52,7 @@ int main(int argc, char *argv[])
         {
             memoria[i] = -1;
         }
-        printf("\nnumquadros = %d\n", numQuadros);
+        // printf("\nnumquadros = %d\n", numQuadros);
 
         file = fopen(argv[2], "r");
         if (file == NULL)
@@ -74,8 +76,8 @@ int main(int argc, char *argv[])
 
         numPags = (int)pow(2.0, (double)(32 - bits));
 
-        printf("bits = %d\n", bits);
-        printf("1 : %d , 2 : %f\n", numPags, pow(2.0, (double)(32 - bits)));
+        // printf("bits = %d\n", bits);
+        // printf("1 : %d , 2 : %f\n", numPags, pow(2.0, (double)(32 - bits)));
 
         // Cria tabela de paginas
         tabela = (Pagina **)malloc(numPags * sizeof(Pagina *));
@@ -88,11 +90,12 @@ int main(int argc, char *argv[])
             tabela[i]->R = 0;
             tabela[i]->M = 0;
             tabela[i]->emMemoria = 0;
-            tabela[i]->ultimoAcesso = 0;
+            tabela[i]->numeroAcessos = 0;
         }
 
         // leitura do log de entrada
-        while ((res = fscanf(log, "%x %c ", &addr, &rw)) != EOF)
+        start = clock();
+        while ((res = fscanf(file, "%x %c ", &addr, &rw)) != EOF)
         {
             int novoEndereco = 0;
             page = addr >> bits; // indice da pagina
@@ -112,6 +115,7 @@ int main(int argc, char *argv[])
             // a pagina nao esta na memoria
             if (!tabela[page]->emMemoria)
             {
+                n_pageFaults++;
                 //testa para ver se tem espaço na memória para a pagina
                 novoEndereco = 0; // novo endereço da página na memória
                 short achou = 0;
@@ -128,14 +132,14 @@ int main(int argc, char *argv[])
                 // chama o algoritmo de substituicao de pagina correspondente
                 if (achou == 0)
                 {
-                    if (!strcmp(algoritmo, "LRU"))
+                    if (!strcmp(algoritmo, "LFU"))
                     {
-                        int lastAccessed = tempo;
-                        for (int i = 0; i < numQuadros; i++)
+                        int menorAcessos = 0;
+                        for (int i = numQuadros - 1; i >= 0; i--)
                         {
-                            if (tabela[memoria[i]]->ultimoAcesso < lastAccessed)
+                            if (tabela[memoria[i]]->numeroAcessos < menorAcessos)
                             {
-                                lastAccessed = tabela[memoria[i]]->ultimoAcesso;
+                                menorAcessos = tabela[memoria[i]]->numeroAcessos;
                                 novoEndereco = i;
                             }
                         }
@@ -178,19 +182,32 @@ int main(int argc, char *argv[])
                     }
                 }
             }
+
+            if (memoria[novoEndereco] != -1)
+            { 
+                tabela[memoria[novoEndereco]]->emMemoria = 0;
+                if (tabela[memoria[novoEndereco]]->M == 1)
+                {
+                    tabela[memoria[novoEndereco]]->R = 0;
+                    tabela[memoria[novoEndereco]]->M = 0;
+                    paginasEscritas++;
+                }
+            }
+
             tabela[page]->emMemoria = 1;
             tabela[page]->endereco = novoEndereco;
 
             memoria[novoEndereco] = page;
 
             tabela[page]->R = 1;
-            if (rw == "W")
+            if (rw == 'W')
             {
                 tabela[page]->M = 1;
             }
+            tabela[page]->numeroAcessos++;
             tempo++;
         }
-
+        stop = clock();
         // liberacao da memoria dinamica
         for (int i = 0; i < numPags; i++)
         {
@@ -198,8 +215,9 @@ int main(int argc, char *argv[])
         }
         free(tabela);
         free(memoria);
-        printf("Número de Faltas de Páginas: %d", n_pageFaults);
-        // printf("Número de Páginas Escritas: %d", );
+        printf("Número de Faltas de Páginas: %d\n", n_pageFaults);
+        printf("Número de Páginas Escritas: %d\n", paginasEscritas);
+        printf("Tempo de execucao: %f\n", (double)(stop - start) / CLOCKS_PER_SEC);
     }
     else
     {
